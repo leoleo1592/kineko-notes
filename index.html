@@ -39,6 +39,18 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .syncnote{background:var(--soft);border:2px solid var(--gold);border-radius:12px;padding:6px 12px;font-size:13px;margin-bottom:12px}
 .syncnote.ro{border-color:var(--red)}
 .by{margin-top:8px;font-size:12px;color:var(--sub);text-align:right}
+.imgs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.imgcard{width:132px;border:2px solid var(--line);border-radius:10px;background:var(--bg);padding:6px;display:flex;flex-direction:column;gap:4px}
+.imgcard img{width:100%;aspect-ratio:4/3;object-fit:contain;background:var(--soft);border-radius:6px}
+.imgname{font-size:11px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imgbtn{display:flex;gap:4px}
+.imgbtn .btn{flex:1;padding:2px 4px}
+.subs{display:flex;flex-direction:column;gap:10px;margin-bottom:8px}
+.subrow{border:2px solid var(--line);border-radius:12px;background:var(--bg);padding:10px 12px}
+.subhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.subhead .no{font-weight:700;font-size:13px}
+.subtools{display:flex;gap:4px}
+.f input[type=color]{padding:2px;height:36px}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--text);font:15px/1.65 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif}
@@ -187,6 +199,7 @@ const SECTIONS = [
    fields:[
     F("edition","回（例：第34回）","text",{w:"w3"}),
     F("name","映画祭の正式名称","text",{w:"w4"}),
+    F("nameEn","英語の正式名称","text",{w:"w4"}), F("editionEn","回（英語。例：The 34th）","text",{w:"w2"}),
     F("year","開催年","number",{w:"w3"}),
     F("dateStart","会期 開始日","date",{w:"w3"}),
     F("dateEnd","会期 終了日","date",{w:"w3"}),
@@ -198,78 +211,113 @@ const SECTIONS = [
     F("sns_yt","YouTube","url",{w:"w3"}), F("sns_note","note","url",{w:"w3"}),
     F("advance","前売の販売終了日時","datetime-local",{w:"w3"}),
     F("general","一般販売の開始日時","datetime-local",{w:"w3"}),
+    F("mapImg","マップ画像（会場の地図）","img",{w:"w2"}), F("logoJa","ロゴ（日本語）","img",{w:"w2"}), F("logoEn","ロゴ（英語）","img",{w:"w2"}),
     F("contacts","窓口・担当者（クライアント側／制作側）","area"),
     F("deadlines","情報の締切・入稿日・ストア申請日などの予定","area")
    ]},
   {id:"check", group:"全体", title:"抜け・食い違いチェック", type:"check",
    desc:"入れた情報の抜けや、食い違いを自動で探します。見つかったものは「開く」でその場所へ移れます。"},
-  {id:"venues", group:"会場・作品", title:"会場", type:"list", desc:"アプリのマップと会場表示に使う。マップ画像・ピンの位置を変える場合は備考へ。",
+  {id:"venues", group:"会場・作品", title:"会場", type:"list", desc:"アプリのマップと会場表示に使う。地図の画像は「基本情報」に入れ、ピンの位置はここに入れる。",
    fields:[
     F("name","会場名","text",{title:true,w:"w2"}), F("short","略称","text",{w:"w2"}), F("pin","マップ記号（A〜G）","text",{w:"w3"}),
     F("en","英語名","text",{w:"w2"}), F("enShort","英語の略称","text",{w:"w2"}),
-    F("addr","住所","text",{w:"w4"}), F("floor","フロア","text",{w:"w2"}),
+    F("addr","住所","text",{w:"w4"}), F("floor","フロア","text",{w:"w3"}), F("floorEn","フロア（英語）","text",{w:"w3"}),
     F("kind","種別","select",{o:["上映会場","ステージ","飲食・物販","展示・体験","その他"],w:"w2"}),
+    F("program","会場名の横に出す短い名前（アプリの program_label）","text",{w:"w2"}),
     F("cap","会場の収容人数","number",{w:"w2"}),
+    F("mapX","地図の中のピンの位置：横（左端が0、右端が1）","number",{w:"w3",ph:"0.42",step:"0.001"}), F("mapY","地図の中のピンの位置：縦（上端が0、下端が1）","number",{w:"w3",ph:"0.58",step:"0.001"}),
+    F("pinColor","ピンの色","color",{w:"w3"}),
+    F("photo","会場の写真","img",{multi:true}),
     F("access","アクセス・注意事項","area")
    ]},
-  {id:"films", group:"会場・作品", title:"作品", type:"list", desc:"映画の基本情報。ポスター・監督写真の画像は、ファイル名を書いておく。",
+  {id:"films", group:"会場・作品", title:"作品", type:"list", desc:"映画の基本情報（日本語・英語）。ポスターと監督の写真は、画像をアップロードする。",
    fields:[
     F("title","作品名","text",{title:true,w:"w2"}), F("titleEn","英題","text",{w:"w2"}),
     F("cat","区分","select",{o:["チルドレン","ティーンズ","日本作品","ドキュメンタリー","ライブシネマ","その他"],w:"w2"}),
-    F("country","製作国","text",{w:"w2"}), F("min","上映時間","text",{ph:"12分",w:"w3"}), F("yr","製作年","number",{w:"w3"}),
-    F("age","対象年齢","text",{ph:"5+",w:"w3"}), F("directors","監督","text",{w:"w3"}),
-    F("tag","ひとこと紹介","text"),
-    F("syn","あらすじ","area"),
-    F("poster","ポスター画像のファイル名／URL","text",{w:"w2"}), F("dphoto","監督写真のファイル名","text",{w:"w2"}),
-    F("copy","クレジット表記（©）","text",{w:"w2"}),
+    F("country","製作国","text",{w:"w2"}), F("min","上映時間（分）","number",{ph:"12",w:"w3"}), F("yr","製作年","number",{w:"w3"}),
+    F("age","対象年齢","text",{ph:"5+",w:"w3"}),
+    F("tag","ひとこと紹介（13〜14文字ほど）","text",{w:"w2"}), F("tagEn","ひとこと紹介（英語）","text",{w:"w2"}),
+    F("syn","あらすじ","area"), F("synEn","あらすじ（英語）","area"),
+    F("note","上映後に出すメモ","area",{w:"w2"}), F("noteEn","上映後に出すメモ（英語）","area",{w:"w2"}),
+    F("directors","監督（1人ずつ。写真もここ）","subs",{noun:"監督",sub:[
+      F("name","名前","text",{w:"w2"}), F("nameEn","名前（英語）","text",{w:"w2"}), F("photo","写真","img")]}),
+    F("poster","ポスター画像","img",{w:"w2"}),
+    F("copy","クレジット表記（©）","text",{w:"w2"}), F("copyEn","クレジット表記（英語）","text",{w:"w2"}),
     F("rank","おすすめの順位","number",{w:"w3"}),
     F("secret","公開日までタイトルを伏せる","check",{w:"w3"})
    ]},
   {id:"screenings", group:"会場・作品", title:"上映スケジュール", type:"list", desc:"1行＝1つの上映回（短編集もここ）。収録作品・会場・日付は、先に「作品」「会場」「基本情報」に入れたものから選ぶ。",
    fields:[
-    F("prog","プログラム名","text",{title:true,w:"w2"}), F("sub","サブタイトル","text",{w:"w2"}),
+    F("prog","プログラム名","text",{title:true,w:"w2"}), F("progEn","プログラム名（英語）","text",{w:"w2"}),
+    F("sub","サブタイトル","text",{w:"w2"}), F("subEn","サブタイトル（英語）","text",{w:"w2"}),
+    F("tag","ひとこと紹介","text",{w:"w2"}), F("tagEn","ひとこと紹介（英語）","text",{w:"w2"}),
+    F("ageRec","対象年齢（この上映回）","text",{ph:"5+",w:"w3"}),
     F("dates","上映日（基本情報の日付から選ぶ）","dates"),
     F("venue","会場","ref",{of:"venues",w:"w3"}),
     F("start","開始","time",{w:"w3"}), F("end","終了","time",{w:"w3"}),
     F("films","収録作品（「作品」に登録したものから選ぶ。上映順）","refs",{of:"films"}),
     F("pa","おとな（円）","number",{w:"w3"}), F("pc","こども（円）","number",{w:"w3"}), F("pf","ファミリー（円）","number",{w:"w3"}),
-    F("da","当日券 おとな（円）","number",{w:"w3"}), F("dc","当日券 こども（円）","number",{w:"w3"}), F("capa","定員","number",{w:"w3"}),
+    F("da","当日券 おとな（円）","number",{w:"w3"}), F("dc","当日券 こども（円）","number",{w:"w3"}),
+    F("capa","前売の定員（有料で売る上限）","number",{w:"w3"}),
+    F("invCapa","招待・クーポンも含めた総席数","number",{w:"w3"}), F("doorCapa","当日券の枠","number",{w:"w3"}), F("juryCapa","審査員席","number",{w:"w3"}),
+    F("fullCapa","会場の全席数（予備枠を含む）","number",{w:"w3"}),
     F("free","入場無料","check",{w:"w3"}), F("web","Web限定（アプリには出さない）","check",{w:"w3"}), F("live","ライブシネマ","check",{w:"w3"})
    ]},
   {id:"stage", group:"企画", title:"ステージ・セレモニー", type:"list", desc:"開会式・閉会式・パーティー・ガレリアのステージなど（アプリ内では固定の内容として書いてある）。",
    fields:[
     F("title","名称","text",{title:true,w:"w2"}), F("titleEn","英語名","text",{w:"w2"}),
     F("date","日付","dates"),
-    F("time","時間","text",{ph:"16:00-17:30",w:"w2"}), F("venue","会場","ref",{of:"venues",w:"w2"}),
-    F("desc","内容・プログラム","area"),
+    F("t1","開始","time",{w:"w3"}), F("t2","終了","time",{w:"w3"}), F("venue","会場","ref",{of:"venues",w:"w3"}),
+    F("timeNote","時間の補足（時間が未定のとき、ここに書く）","text"),
+    F("desc","内容・プログラム","area"), F("descEn","内容・プログラム（英語）","area"),
     F("price","料金（円）","number",{w:"w3"}), F("capa","定員","number",{w:"w3"}), F("ticket","チケット販売あり","check",{w:"w3"}),
-    F("photo","写真のファイル名","text")
+    F("photo","写真","img")
    ]},
-  {id:"workshops", group:"企画", title:"ワークショップ", type:"list", desc:"事前予約の有無・人数の単位も書いておく。",
+  {id:"workshops", group:"企画", title:"ワークショップ", type:"list", desc:"内容（日本語・英語）と、事前予約の「枠」。枠ごとに、開始日時・定員・案内文を入れる。",
    fields:[
     F("title","名称","text",{title:true,w:"w2"}), F("titleEn","英語名","text",{w:"w2"}),
     F("date","日付","dates"),
-    F("time","時間","text",{ph:"10:00-11:30",w:"w2"}), F("venue","会場","ref",{of:"venues",w:"w2"}),
-    F("inst","講師","text",{w:"w2"}), F("capa","定員","number",{w:"w2"}),
-    F("desc","説明","area"),
-    F("open","予約の受付開始","datetime-local",{w:"w2"}), F("unit","組の人数（ペアなら2）","number",{w:"w2"}),
-    F("kidsOnly","子ども限定（全員の年齢を聞く）","check",{w:"w2"}),
-    F("img","画像のファイル名","text")
+    F("t1","開始","time",{w:"w3"}), F("t2","終了","time",{w:"w3"}), F("venue","会場","ref",{of:"venues",w:"w3"}),
+    F("timeNote","時間の補足（時間が未定のとき、ここに書く）","text"),
+    F("inst","講師","text",{w:"w2"}), F("instEn","講師（英語）","text",{w:"w2"}),
+    F("desc","説明","area"), F("descEn","説明（英語）","area"),
+    F("reserve","事前予約を受け付ける","check"),
+    F("sessions","予約の枠（開始時刻ごとに1つ）","subs",{noun:"枠",sub:[
+      F("label","表示する時間（例：10:00〜11:30）","text",{w:"w2"}), F("labelEn","表示する時間（英語）","text",{w:"w2"}),
+      F("at","開始日時（この時刻で予約を締め切る）","datetime-local",{w:"w2"}), F("capa","定員（人）","number",{w:"w3"}), F("unit","1組の人数（ペアなら2。自由なら空）","number",{w:"w3"}),
+      F("open","いま予約を受け付ける","check",{w:"w2"}), F("kidsOnly","子ども限定（全員の年齢を聞く）","check",{w:"w2"}),
+      F("intro","予約フォームの上に出す案内","area",{w:"w2"}), F("introEn","同（英語）","area",{w:"w2"}),
+      F("confirm","予約後・確認メールに出す案内","area",{w:"w2"}), F("confirmEn","同（英語）","area",{w:"w2"}),
+      F("full","満席になったときの案内","area",{w:"w2"}), F("fullEn","同（英語）","area",{w:"w2"})]}),
+    F("img","画像","img")
    ]},
   {id:"food", group:"企画", title:"フード・物販", type:"list", desc:"会場グルメ・グッズ。",
    fields:[
-    F("name","店名・商品名","text",{title:true,w:"w2"}), F("venue","会場","ref",{of:"venues",w:"w2"}),
+    F("name","店名・商品名","text",{title:true,w:"w2"}), F("nameEn","英語名","text",{w:"w2"}),
+    F("venue","会場","ref",{of:"venues",w:"w2"}), F("kind","種類","text",{w:"w2"}),
     F("dates","出店日","dates"),
-    F("place","場所の補足（例：2階の入口付近）","text",{w:"w3"}), F("url","URL","url",{w:"w3"}), F("kind","種類","text",{w:"w3"}),
-    F("desc","内容","area")
+    F("place","場所の補足（例：2階の入口付近）","text",{w:"w2"}), F("url","URL","url",{w:"w2"}),
+    F("desc","内容","area"), F("descEn","内容（英語）","area"),
+    F("photo","写真","img")
    ]},
-  {id:"sponsors", group:"企画", title:"スポンサー・協賛", type:"list", desc:"アプリの「パートナー」欄に載せる。ロゴ画像はファイル名で。",
+  {id:"restaurants", group:"企画", title:"周辺の飲食店", type:"list", desc:"マップに出す、会場の近くのお店。（上の「フード・物販」は、映画祭の会場内のもの）",
+   fields:[
+    F("name","店名","text",{title:true,w:"w2"}), F("nameEn","店名（英語表記。ローマ字など）","text",{w:"w2"}),
+    F("area","エリア（例：二子玉川駅前）","text",{w:"w2"}), F("category","ジャンル（例：カフェ、和食）","text",{w:"w2"}), F("priceRange","価格帯（例：¥1,000〜2,000）","text",{w:"w2"}),
+    F("gmaps","Googleマップのリンク","url",{w:"w2"}),
+    F("desc","紹介文","area"), F("descEn","紹介文（英語）","area"),
+    F("campaign","映画祭のキャンペーン（半券で割引など。なければ空）","area"),
+    F("logo","ロゴ","img",{w:"w2"}), F("photos","写真","img",{multi:true,w:"w2"})
+   ]},
+  {id:"sponsors", group:"企画", title:"スポンサー・協賛", type:"list", desc:"アプリの「パートナー」欄に載せる。ロゴは、画像をアップロードする。",
    fields:[
     F("name","社名","text",{title:true,w:"w2"}),
     F("tier","区分（アプリの区分名）","select",{o:["principal","co","event","alliance","special","support","other"],w:"w2"}),
     F("ord","表示順","number",{w:"w3"}),
-    F("logo","ロゴのファイル名","text",{w:"w3"}), F("url","サイトURL","url",{w:"w3"}), F("pub","アプリに公開する","check",{w:"w3"}),
-    F("desc","紹介文","area"), F("act","ブース・企画の内容","area")
+    F("url","サイトURL","url",{w:"w3"}), F("pub","アプリに公開する","check",{w:"w3"}),
+    F("logo","ロゴ","img"),
+    F("desc","紹介文","area"), F("descEn","紹介文（英語）","area"),
+    F("act","ブース・企画の内容","area"), F("actEn","ブース・企画の内容（英語）","area")
    ]},
   {id:"news", group:"企画", title:"お知らせ", type:"list", desc:"アプリの「お知らせ」に載せる文面（日本語・英語）。",
    fields:[
@@ -282,6 +330,34 @@ const SECTIONS = [
     F("award","賞の名前","text",{title:true,w:"w2"}), F("cat","部門","text",{w:"w2"}),
     F("film","作品（「作品」に登録したものから選ぶ）","ref",{of:"films",w:"w2"}),
     F("note","メモ（コメントなど）","area")
+   ]},
+  {id:"survey", group:"文言・ストア", title:"初回アンケートの質問", type:"list",
+   desc:"アプリを最初に開いたときの質問。いまは、性別・年齢・どこで知ったか・お子さまの有無と年齢。変える質問と、選択肢（日本語・英語）を入れる。",
+   fields:[
+    F("q","質問（日本語）","text",{title:true,w:"w2"}), F("qEn","質問（英語）","text",{w:"w2"}),
+    F("kind","答え方","select",{o:["1つ選ぶ","いくつでも選ぶ","数字を入れる","自由に書く"],w:"w2"}),
+    F("must","必ず答えてもらう","check",{w:"w2"}),
+    F("opts","選択肢","subs",{noun:"選択肢",sub:[F("label","日本語","text",{w:"w2"}), F("labelEn","英語","text",{w:"w2"})]})
+   ]},
+  {id:"texts", group:"文言・ストア", title:"アプリ内の文言", type:"list",
+   desc:"アプリの中の文章で、変えたいもの（例：「第33回」→「第34回」、お知らせ欄の見出し、ボタンの言葉）。画面と、いまの文言も書くと、見つけやすい。",
+   fields:[
+    F("where","場所・画面（例：ホームの見出し）","text",{title:true}),
+    F("now","いまの文言","area",{w:"w2"}), F("ja","新しい文言（日本語）","area",{w:"w2"}),
+    F("en","新しい文言（英語）","area")
+   ]},
+  {id:"store", group:"文言・ストア", title:"ストア掲載情報", type:"form",
+   desc:"App Store / Google Play に出す文章と画像。審査用のアカウントのパスワードは、ここに書かない。",
+   fields:[
+    F("appName","アプリ名","text",{w:"w2"}), F("subtitle","サブタイトル（iOS）","text",{w:"w2"}),
+    F("short","短い説明（Android）","text"),
+    F("desc","説明文（日本語）","area"), F("descEn","説明文（英語）","area"),
+    F("keywords","キーワード（iOS。カンマ区切り）","text"),
+    F("whatsNew","このバージョンの新機能（日本語）","area",{w:"w2"}), F("whatsNewEn","このバージョンの新機能（英語）","area",{w:"w2"}),
+    F("supportUrl","サポートのURL","url",{w:"w2"}), F("privacyUrl","プライバシーポリシーのURL","url",{w:"w2"}),
+    F("reviewNote","審査担当者へのメモ（ログイン方法の説明など。パスワードは書かない）","area"),
+    F("icon","アプリアイコン","img",{w:"w3"}), F("feature","フィーチャーグラフィック（Android）","img",{w:"w3"}),
+    F("shotsIos","スクリーンショット（iOS）","img",{multi:true}), F("shotsAnd","スクリーンショット（Android）","img",{multi:true})
    ]},
   {id:"tickets", group:"運用", title:"チケット・販売ルール", type:"form",
    desc:"価格・販売期間・払い戻し・クーポンなどの方針。実際の価格は「上映スケジュール」へ。",
@@ -628,6 +704,8 @@ function fieldEl(f, obj, onChange){
   const set = v => { obj[f.k] = v; onChange && onChange(f); save(); };
   if (f.t === "refs") return refsEl(f, obj, onChange);
   if (f.t === "dates") return datesEl(f, obj, onChange);
+  if (f.t === "img") return imgEl(f, obj, onChange);
+  if (f.t === "subs") return subsEl(f, obj, onChange);
   let input, extra = null;
   if (f.t === "area") input = h("textarea", {id, value: obj[f.k] || "", placeholder: f.ph || "", oninput: e => set(e.target.value)});
   else if (f.t === "select") {
@@ -647,7 +725,7 @@ function fieldEl(f, obj, onChange){
     const cb =h("input", {type:"checkbox", id, checked: !!obj[f.k], onchange: e => set(e.target.checked)});
     return h("div", {class:"f chk " + (f.w || "")}, cb, h("label", {for:id}, f.l));
   }
-  else input = h("input", {id, type: f.t, value: obj[f.k] ?? "", placeholder: f.ph || "", inputmode: f.t === "number" ? "numeric" : null, oninput: e => set(e.target.value)});
+  else input = h("input", {id, type: f.t, value: obj[f.k] ?? "", placeholder: f.ph || "", inputmode: f.t === "number" ? (f.step ? "decimal" : "numeric") : null, step: f.step || null, oninput: e => set(e.target.value)});
   return h("div", {class:"f " + (f.w || "")}, h("label", {class:"lab", for:id}, f.l), input, extra, f.hint ? h("div", {class:"hint"}, f.hint) : null);
 }
 
@@ -663,7 +741,7 @@ function refsEl(f, obj, onChange){
     ids().forEach((rid, i) => {
       const t = byId(f.of, rid);
       box.append(h("div", {class:"refrow"}, h("span", {class:"no"}, String(i + 1)),
-        h("span", {class:"nm" + (t ? "" : " gone")}, t ? titleOf(f.of, t) + (t.min ? `（${t.min}）` : "") : "（削除された項目）"),
+        h("span", {class:"nm" + (t ? "" : " gone")}, t ? titleOf(f.of, t) + (t.min ? `（${t.min}分）` : "") : "（削除された項目）"),
         h("button", {class:"btn small", type:"button", "aria-label":"上へ", onclick: () => swap(i, i - 1)}, "↑"),
         h("button", {class:"btn small", type:"button", "aria-label":"下へ", onclick: () => swap(i, i + 1)}, "↓"),
         h("button", {class:"btn small", type:"button", "aria-label":"外す", onclick: () => { ids().splice(i, 1); changed(); }}, "外す")));
@@ -677,6 +755,104 @@ function refsEl(f, obj, onChange){
   pick.onchange = () => { if (pick.value) { ids().push(pick.value); changed(); } };
   draw();
   wrap.append(h("label", {class:"lab", for:id}, f.l), box, pick, h("button", {class:"btn ghost small jump", type:"button", onclick: () => go(f.of)}, `「${tt}」を開く →`));
+  return wrap;
+}
+
+/* ---- 画像のアップロード ----
+   ページの中で縮小してから、パスワード確認つきの関数 app_notes_file_put でデータベースに保存する。
+   項目には、小さなサムネイルと画像のIDだけを持たせる（一覧が重くならない）。元の画像は「保存」で取り出せる。 */
+const IMG_LIMIT = 1500000, IMG_MAX = 1900000, IMG_PER_FIELD = 8;
+const blobToB64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = rej; r.readAsDataURL(b); });
+const blobToUrl = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsDataURL(b); });
+async function prepImage(file){
+  const bmp = await createImageBitmap(file);
+  const scaleTo = (max, type, q) => new Promise(res => {
+    const r = Math.min(1, max / Math.max(bmp.width, bmp.height)), c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(bmp.width * r)); c.height = Math.max(1, Math.round(bmp.height * r));
+    const x = c.getContext("2d"); if (type === "image/jpeg") { x.fillStyle = "#fff"; x.fillRect(0, 0, c.width, c.height); }
+    x.drawImage(bmp, 0, 0, c.width, c.height); c.toBlob(res, type, q);
+  });
+  const thumb = await blobToUrl(await scaleTo(240, "image/jpeg", 0.7));
+  let blob = file, mime = file.type;
+  if (file.size > IMG_LIMIT) {                       // 大きい画像だけ縮小する。小さい画像は、そのまま
+    mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+    let max = 2400, q = 0.88; blob = await scaleTo(max, mime, q);
+    while (blob.size > IMG_LIMIT && max > 800) { max = Math.round(max * 0.8); q = Math.max(0.6, q - 0.05); blob = await scaleTo(max, mime, q); }
+  }
+  if (blob.size > IMG_MAX) throw new Error("画像が大きすぎます");
+  return {blob, mime, thumb, w:bmp.width, h:bmp.height};
+}
+async function uploadImage(file){
+  const p = await prepImage(file), id = "f_" + uid() + uid().slice(0, 4);
+  await db.putFile(id, file.name, p.mime, await blobToB64(p.blob));
+  return {id, name:file.name, thumb:p.thumb, w:p.w, h:p.h, size:p.blob.size};
+}
+async function saveImage(im){
+  try {
+    const r = await db.getFile(im.id);
+    if (!r || !r.ok) { toast("画像を取り出せませんでした"); return; }
+    const bin = atob(r.data), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    const a = h("a", {href: URL.createObjectURL(new Blob([bytes], {type:r.mime})), download:r.name || im.name || "image"});
+    document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch (e) { toast("画像を取り出せませんでした"); }
+}
+function imgEl(f, obj, onChange){
+  const wrap = h("div", {class:"f " + (f.w || "")}), box = h("div", {class:"imgs"}), st = h("div", {class:"hint"});
+  const view = () => Array.isArray(obj[f.k]) ? obj[f.k] : [];
+  const changed = () => { onChange && onChange(f); save(); draw(); };
+  const file = h("input", {type:"file", accept:"image/jpeg,image/png,image/webp,image/gif", multiple:!!f.multi, hidden:true, "aria-label":f.l});
+  const pick = h("button", {class:"btn small", type:"button", onclick: () => file.click()}, "");
+  function draw(){
+    box.textContent = "";
+    view().forEach((im, i) => box.append(h("div", {class:"imgcard"},
+      h("img", {src:im.thumb || "", alt:im.name || ""}),
+      h("div", {class:"imgname", title:im.name || ""}, im.name || ""),
+      h("div", {class:"imgbtn"},
+        h("button", {class:"btn small jump", type:"button", onclick: () => saveImage(im)}, "保存"),
+        h("button", {class:"btn small", type:"button", onclick: () => { const a = view().slice(); a.splice(i, 1); obj[f.k] = a; changed(); }}, "外す")))));
+    if (!view().length) box.append(h("div", {class:"hint"}, "まだ画像がありません"));
+    pick.textContent = f.multi ? "＋ 画像を追加" : (view().length ? "差し替える" : "画像を選ぶ");
+  }
+  file.onchange = async () => {
+    const files = [...file.files]; file.value = "";
+    for (const fl of files) {
+      if (!/^image\/(jpeg|png|webp|gif)$/.test(fl.type)) { toast("画像（JPEG・PNG・WebP・GIF）を選んでください"); continue; }
+      if (f.multi && view().length >= IMG_PER_FIELD) { toast(`1つの欄に入れられるのは、${IMG_PER_FIELD}枚までです`); break; }
+      st.textContent = `アップロード中… ${fl.name}`;
+      try { const im = await uploadImage(fl); obj[f.k] = f.multi ? view().concat([im]) : [im]; changed(); }
+      catch (e) { toast(e && e.status === 404 ? "画像の保存先が、まだ準備できていません（管理者に伝えてください）" : "アップロードできませんでした" + (e && e.message ? "：" + e.message : "")); }
+    }
+    st.textContent = "";
+  };
+  draw();
+  wrap.append(h("label", {class:"lab"}, f.l), box, pick, file, st);
+  return wrap;
+}
+
+/* 同じ形の入力を、何件でも並べる（例：監督、ワークショップの予約枠、アンケートの選択肢） */
+function subsEl(f, obj, onChange){
+  const wrap = h("div", {class:"f " + (f.w || "")}), box = h("div", {class:"subs"}), noun = f.noun || "項目";
+  const view = () => Array.isArray(obj[f.k]) ? obj[f.k] : [];
+  const edit = () => (Array.isArray(obj[f.k]) ? obj[f.k] : (obj[f.k] = []));
+  const touched = () => { onChange && onChange(f); save(); };
+  const redraw = () => { touched(); draw(); };
+  function draw(){
+    box.textContent = "";
+    view().forEach((row, i) => {
+      const g = h("div", {class:"grid"});
+      for (const sf of f.sub) g.append(fieldEl(sf, row, touched));
+      box.append(h("div", {class:"subrow"},
+        h("div", {class:"subhead"}, h("span", {class:"no"}, `${noun} ${i + 1}`),
+          h("span", {class:"subtools"},
+            h("button", {class:"btn small", type:"button", "aria-label":"上へ", onclick: () => { const a = edit(); if (i > 0) { [a[i - 1], a[i]] = [a[i], a[i - 1]]; redraw(); } }}, "↑"),
+            h("button", {class:"btn small", type:"button", "aria-label":"下へ", onclick: () => { const a = edit(); if (i < a.length - 1) { [a[i + 1], a[i]] = [a[i], a[i + 1]]; redraw(); } }}, "↓"),
+            h("button", {class:"btn small", type:"button", onclick: async () => { if (await ask(`この${noun}を削除します。`, "削除する", true)) { edit().splice(i, 1); redraw(); } }}, "削除"))),
+        g));
+    });
+    if (!view().length) box.append(h("div", {class:"hint"}, `まだ${noun}がありません`));
+  }
+  draw();
+  wrap.append(h("label", {class:"lab"}, f.l), box, h("button", {class:"btn small", type:"button", onclick: () => { edit().push({}); redraw(); }}, `＋ ${noun}を追加`));
   return wrap;
 }
 
@@ -715,7 +891,7 @@ function renderNav(){
 function countText(s){
   if (s.type === "check") { const n = runChecks().length; return n ? n + "件" : "OK"; }
   const d = sec(s.id);
-  if (s.type === "form") { const n = s.fields.filter(f => { const v = d.values[f.k]; return v !== undefined && v !== "" && v !== false; }).length; return n + "/" + s.fields.length; }
+  if (s.type === "form") { const n = s.fields.filter(f => !emp(d.values[f.k])).length; return n + "/" + s.fields.length; }
   if (s.type === "tasks") return d.items.filter(i => i.done).length + "/" + d.items.length;
   const fin = d.items.filter(i => i.status === "確定").length;
   return d.items.length ? fin + "/" + d.items.length : "0";
@@ -864,7 +1040,8 @@ function derived(s, it){
   }
   if (s.id === "awards") {
     const fl = byId("films", it.film);
-    if (fl) L.push("作品の情報：" + ([fl.directors, fl.country, fl.min].filter(Boolean).join(" ／ ") || "監督・国・上映時間が、まだ「作品」に入っていません"));
+    if (fl) { const dn = (Array.isArray(fl.directors) ? fl.directors : []).map(d => d && d.name).filter(Boolean).join("、");
+      L.push("作品の情報：" + ([dn, fl.country, fl.min ? fl.min + "分" : ""].filter(Boolean).join(" ／ ") || "監督・国・上映時間が、まだ「作品」に入っていません")); }
   }
   return L.length ? h("div", {class:"derived"}, L.map(x => h("div", {}, x))) : null;
 }
@@ -919,7 +1096,8 @@ function runChecks(){
   // 受賞
   items("awards").forEach(a => { if (!a.film) add("awards", a.id, `受賞作品：${ttl("awards", a)}の作品が未選択です`); else if (!byId("films", a.film)) add("awards", a.id, `受賞作品：${ttl("awards", a)}の作品が削除されています`); });
   // スポンサー
-  items("sponsors").forEach(p => { if (p.pub && !p.logo) add("sponsors", p.id, `スポンサー：${ttl("sponsors", p)}は公開にしてありますが、ロゴのファイル名が未入力です`); });
+  items("sponsors").forEach(p => { if (p.pub && !(Array.isArray(p.logo) && p.logo.length)) add("sponsors", p.id, `スポンサー：${ttl("sponsors", p)}は公開にしてありますが、ロゴ画像がありません`); });
+  films.forEach(f => { if (!(Array.isArray(f.poster) && f.poster.length)) add("films", f.id, `作品：${ttl("films", f)}のポスター画像がありません`); });
   // 基本情報
   const b = sec("basic").values;
   if (b.dateStart && b.dateEnd && b.dateStart > b.dateEnd) add("basic", null, "基本情報：会期の開始日が、終了日より後になっています");
@@ -957,6 +1135,8 @@ function valText(f, v){
   if (f.t === "ref") return v ? (byId(f.of, v) ? titleOf(f.of, byId(f.of, v)) : "（削除済み）") : "";
   if (f.t === "refs") return (Array.isArray(v) ? v : []).map(id => byId(f.of, id) ? titleOf(f.of, byId(f.of, id)) : "（削除済み）").join("\n");
   if (f.t === "dates") return (Array.isArray(v) ? v : []).join("、");
+  if (f.t === "img") return (Array.isArray(v) ? v : []).map(x => x && x.name).filter(Boolean).join("、");
+  if (f.t === "subs") return (Array.isArray(v) ? v : []).map((row, i) => `${i + 1}. ` + f.sub.map(sf => valText(sf, row && row[sf.k])).filter(Boolean).join(" ／ ")).join("\n");
   return v == null ? "" : String(v);
 }
 const bullet = (l, v) => `- ${l}：${v.includes("\n") ? "\n" + v.split("\n").map(x => "  " + x).join("\n") : v}`;
@@ -1098,7 +1278,12 @@ function makeRemoteDb(pw, by, onAuthFail){
   return {
     collection: c => ({ onSnapshot: (cb, err) => { listeners.push({c, cb, err, done:false}); if (!started) { started = true; setTimeout(tick, 0); } return () => {}; } }),
     doc: path => ({ set: d => write(path, "set", d), update: d => write(path, "update", d), delete: () => write(path, "delete") }),
-    poll
+    poll,
+    putFile: async (id, name, mime, data) => {
+      const res = await rpc("app_notes_file_put", {p_password:pw, p_id:id, p_name:name, p_mime:mime, p_data:data, p_by:by});
+      if (!res.ok) { if (res.error === "bad_password" || res.error === "locked") { dead = true; onAuthFail(res.error); } throw new Error(res.error === "too_large" ? "画像が大きすぎます" : res.error === "quota_exceeded" ? "保存できる枚数の上限です" : "保存できませんでした"); }
+    },
+    getFile: id => rpc("app_notes_file_get", {p_password:pw, p_id:id})
   };
 }
 
